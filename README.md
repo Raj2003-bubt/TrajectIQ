@@ -1,78 +1,134 @@
-# TRAJECTIQ · v5.0.0
+# TrajectIQ — Space Mission Design Game
 
-**Design → validate → launch → operate → understand → redesign.**
+**Design a spacecraft. Operate the mission. Understand the trade-offs.**
 
-Team: **Kemon Dilam Bondhura**. An educational Space Mission Design Game with Moon and Mars scenarios, seven spacecraft subsystem categories, deterministic simulation, crises, causal debriefs and an offline mission assistant.
+[![Build and regression tests](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml/badge.svg)](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml)
 
-This is a tested **release candidate**, not a flight-design tool or a certified cross-device release. Automated verification is complete; physical-device verification remains pending. The deployed Moon journey, crisis refresh, Mars setup and assistant smoke checks passed. See `docs/QA_V5.md`.
+An educational browser game developed in the NASA Space Apps Challenge 2026 project context. TrajectIQ connects spacecraft subsystem choices to consequences for energy, propulsion, data return, and mission objectives through Moon and Mars scenarios.
 
-**Live game:** https://trajectiq-omega.vercel.app/
+[Play the existing live demo](https://trajectiq-omega.vercel.app/) · [Developer guide](docs/DEVELOPER_V5.md) · [Scientific model](docs/SCIENTIFIC_VALIDATION_V5.md) · [Audit](docs/PORTFOLIO_AUDIT.md)
 
-**Source:** https://github.com/Pranto-404/Trajectiq
+The demo is the original deployment, maintained separately from this portfolio repository. Changes here do not automatically update that deployment.
 
-**Updates:** push changes to `main` to trigger Vercel. Each deployment builds the game and runs the tests before release. Local edits must be committed and pushed; cached game clients adopt updates after all game tabs are closed and reopened.
+## Problem and motivation
 
-## Play immediately
+Spacecraft subsystems are often taught separately, but a mission depends on their interactions. A more capable instrument also needs power, storage, communication bandwidth, mass allowance, and budget. TrajectIQ makes these dependencies visible: build a design, inspect margins, encounter consequences, and make a targeted revision.
 
-Open **`dist/TRAJECTIQ_Play.html`** in a desktop browser, or double-click `START_GAME.bat` on Windows. The HTML embeds the complete game; no installation, internet, account, paid AI service or API key is required. A phone's file preview may not execute HTML: use a hosted HTTPS version for mobile play.
+The teaching loop combines design validation, deterministic operations, crisis decisions, and a causal debrief. Players can compare choices under the same simulation policy. Learning gains have not been measured in a user study.
 
-For modular development, use Node.js 22+ for build/tests and Python 3 for the optional local server:
+## Verified features
 
-```sh
+- Moon/Mars presets with destination-specific constants and engineering constraints.
+- Seven subsystem categories, component choices, and fuel/orbit/array/battery/instrument customization.
+- Live cost, mass, power, battery, storage, communication, and propulsion margins.
+- Launch-readiness validation and a deterministic mission lifecycle.
+- Mission events, resource-gated recovery choices, and returned-science scoring.
+- Causal debrief, run comparison, and targeted redesign previews.
+- State-aware offline assistant with bounded what-if experiments and explicit apply actions.
+- Browser-local autosave and paused resume, including unresolved crises.
+- Seeded robustness sampling with progress/cancellation and disclosed assumptions.
+- Schematic WebGL spacecraft view with an SVG fallback.
+- Standalone HTML, hosted offline caching after initial installation, and JSON report export.
+
+## Moon and Mars gameplay
+
+| Scenario | Environment and scope |
+|---|---|
+| Moon | 100 km Balanced starter orbit, lunar radius/GM, 1,361 W/m² reference sunlight, fixed teaching eclipse |
+| Mars | 400 km starter orbit, Mars radius/GM, 586.2 W/m² reference sunlight, destination-specific altitude limits, simplified derived eclipse |
+
+Both are simplified arrival/orbital mapping scenarios. Transport is pre-arranged and compressed. Mars gameplay does not simulate an Earth–Mars cruise, launch window, or landing.
+
+1. Accept the mission and start with **Moon / Balanced**.
+2. Change a subsystem and inspect cost, mass, power, and data margins.
+3. Open **Launch readiness**, resolve blockers, and authorize launch.
+4. Advance to events, choose enabled recovery actions, and resume.
+5. Return at least **520 science units** while retaining battery energy; observations left onboard do not count as returned.
+6. Read the debrief, preview a targeted redesign, and compare another run.
+
+The budget is 150 fictional credits and the target is 650 game science units, with success at 80%. These values are teaching choices.
+
+## Technology and architecture
+
+**JavaScript ES modules · HTML/CSS · Native WebGL/SVG · Service Worker · Node.js test runner · Static Vercel hosting**
+
+No npm runtime dependencies, backend services, accounts, API keys, or external AI calls are required.
+
+| Module | Responsibility |
+|---|---|
+| `dist/data/` | NASA/JPL snapshots, provenance, fictional components, and presets |
+| `dist/engine/model.js` | Normalization, constraints, model equations, events, scoring, debrief, and seeded experiments |
+| `dist/engine/copilot.js`, `assistant.js` | Bounded intent parsing, grounded explanations, and engine-backed comparisons |
+| `dist/ui/` | Navigation, guarded edits, checkpoints, modals, and schematic rendering |
+| `dist/sw.js` | Versioned hosted offline shell |
+| `scripts/build-standalone.mjs` | Self-contained HTML built from the same modules |
+| `tests/` | Engine, physics, assistant, UI/GPU adapters, cache, and standalone checks |
+
+The engine is separate from rendering. The maintained modules live in `dist` alongside the generated standalone HTML; edit modules and rebuild rather than editing the generated file.
+
+## Offline mission assistant
+
+The assistant is deterministic and rule-based. It uses actual design/flight state and the mission engine, rather than a general-purpose generative AI model.
+
+Try `Review my design`, `What if fuel = 45 kg?`, `What if battery size = 125%?`, or `Compare presets`. Experiments preview original/proposed values before applying changes. Unsupported or ambiguous questions receive a limitation or clarification. English, Bangla, and common Banglish inputs are supported; the whole interface is not fully translated.
+
+## Scientific sources and assumptions
+
+| Category | Examples |
+|---|---|
+| Bundled NASA/JPL references | Body radius, GM, reference irradiance, illustrative distance ranges |
+| Mathematical relations | Circular two-body period, ideal rocket equation, energy integration, unit conversion, light-time |
+| Educational approximations | Contact schedules, central-shadow eclipse geometry, simplified link scaling, capture penalties |
+| Fictional game parameters | Components, hardware specifications, credits, science units, event triggers, uncertainty ranges |
+
+Snapshots are not live telemetry or current ephemerides. Mars's 225-million-km link reference is a chosen normalization, not a measured average. The robustness index measures seeded game outcomes under assumed perturbations; it is not a real spacecraft survival probability.
+
+References: [JPL physical parameters](https://ssd.jpl.nasa.gov/sats/phys_par/sep.html), [NASA Moon Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html), [NASA Mars Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html), [NASA Mars Relay Network](https://science.nasa.gov/mars/mars-relay-network/), and [NASA Glenn rocket equation](https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/ideal-rocket-equation/). Equations, units, numerical cases, and omitted dynamics are in [scientific validation](docs/SCIENTIFIC_VALIDATION_V5.md).
+
+## Run locally
+
+For immediate desktop play, open **`dist/TRAJECTIQ_Play.html`** or use **`START_GAME.bat`** on Windows. Mobile file-preview apps may not execute HTML; use the HTTPS demo.
+
+For development, install **Node.js 22+** and optionally **Python 3** for the local server:
+
+```bash
+git clone https://github.com/Raj2003-bubt/TrajectIQ.git
+cd TrajectIQ
 npm run build
 npm test
 npm start
 ```
 
-Open `http://localhost:3000`. Windows users without `python3` can run `py -m http.server 3000 --directory dist`. There are no npm dependencies. `npm run build` regenerates the standalone file from the same modules.
+Open `http://localhost:3000`. On Windows without `python3`, use `py -m http.server 3000 --directory dist`. No npm installation step is needed.
 
-## First mission
+## Build and verification
 
-1. Choose **Accept mission · enter hangar**. Start with Moon and the Balanced design.
-2. Choose a subsystem, then a component. Watch cost, mass, power, battery and data margins change. Customize name, color, fuel, orbit, array/battery size and instrument duty.
-3. Open **Launch readiness**, read blockers/warnings, then authorize launch.
-4. Use **Next event** or the step button. Recovery decisions pause the mission. Choose a response, then resume. Operations commands become available after capture.
-5. Return at least **520 science units** of the 650-unit target while ending with battery above zero. The budget is 150 fictional credits. Observations left onboard do not count as returned science.
-6. Read the debrief. **Apply power + comms fix** previews a targeted upgrade; it preserves unrelated choices and can be cancelled. Relaunch and compare.
+The independent local audit passed the build and **281 tests with zero failures/skips** on Node.js 24.19.0. The history-migration workflow also passed build/tests. Regular GitHub Actions CI has been observed successful and repeats the build and regression suite on **Node.js 22 and 24**, including committed standalone-file consistency. See [the actual workflow runs](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml).
 
-Mars is available through **Choose destination** in the hangar/lab. Switching loads a Mars starter design; it changes radius, gravity, sunlight, altitude limits, eclipse estimate and distance examples. It is a simplified pre-arranged arrival/orbital mapping scenario, not a full Earth–Mars cruise or landing simulation.
+Coverage includes analytic physical-model cases, energy/data conservation, duplicate-action guards, checkpoint continuity, assistant behavior, renderer lifecycle, and offline-cache contracts. Mocked UI/GPU checks do not establish complete browser, mobile, or accessibility compatibility.
 
-## Save, resume and offline
+## Saving, offline use, and limitations
 
-An active flight is automatically checkpointed in this browser, including pending crises. Reload restores it paused. Hardware is locked during a flight; changing presets/resetting requires explicit discard. Damaged/incompatible checkpoints are retained for export until explicitly discarded.
+- Saves belong to the current browser, device, and origin. Clearing site data or storage restrictions can lose/prevent saves; no cloud sync exists.
+- Reload restores valid active-flight checkpoints paused. Incompatible/corrupt data is retained for explicit export/discard.
+- JSON reports are read-only exports, not restore/import files.
+- Hosted offline use requires a successful initial load and service-worker installation; external references need internet.
+- Close all game tabs and reopen to activate cached updates; active flights are not forcibly replaced.
+- The model omits n-body dynamics, complete RF budgets, realistic contact geometry, landing, and thermal/radiation effects. It is not a flight-design or flight-certified tool.
+- Real-device, full visual/accessibility, and offline-update lifecycle checks remain incomplete. No flawless cross-device claim is made.
 
-Browser storage is local to the origin, device and browser. Clearing site data loses it; private browsing or quota restrictions can prevent saving. The JSON mission report is **read-only**, not an import/restore file. There is no cloud sync or online multiplayer.
+## Screenshots
 
-The standalone file contains all runtime assets. The hosted app becomes offline-ready after its first successful service-worker cache installation; it cannot load for the first time without a network. Close every game tab and reopen to activate a new cached release. v5 pins cached modules to one version and avoids forcing an update over an active game. External NASA links require a connection.
+Actual game screenshots are not yet committed. The live demo is linked above; no generated artwork is presented as an application capture.
 
-## Assistant
+## Documentation and future work
 
-The assistant is a **deterministic offline project copilot**, not a live general-purpose generative AI. It uses actual design/flight state and the game engine. English, Bangla and common Banglish prompts are supported; the whole interface is only partly translated.
+[Developer guide](docs/DEVELOPER_V5.md) · [Scientific validation](docs/SCIENTIFIC_VALIDATION_V5.md) · [Historical QA](docs/QA_V5.md) · [Requirements](docs/REQUIREMENTS.md) · [Demo paths](docs/DEMO_V5.md) · [Release notes](docs/RELEASE_NOTES_V5.md) · [Original deployment record](docs/DEPLOYMENT_V5.md)
 
-Try `Review my design`, `What if fuel = 45 kg?`, `What if battery size = 125%?`, `What if solar array size = 1.25x?`, `Compare presets`, or ask which crisis response to choose. Experiments show original/proposed values and require an explicit apply action. Unknown, ambiguous and unsupported questions receive a limitation/clarification instead of an invented specification.
+Potential extensions include real-device verification, full localization, validated report import, history-aware navigation, and measured usability/learning studies. These are possibilities rather than completed features.
 
-## Scientific scope
+## Provenance and licensing
 
-NASA/JPL snapshots supply Moon/Mars radius, gravitational parameter, solar irradiance and distance examples. Established equations supply ideal rocket performance, circular period, energy integration and unit conversions. Hardware values, mission credits, science units, recovery triggers, contact scheduling and uncertainty ranges are **educational assumptions**.
+Republished with the owner's confirmation of permission from the original rightsholders. Original source: [Pranto-404/Trajectiq](https://github.com/Pranto-404/Trajectiq), baseline `a925ad86317ea0f336c8656de6650ff3849aa27b`. Original commit authors, history, attribution, and documentation are preserved. See [provenance](docs/PROVENANCE.md) and the [historical source README](docs/HISTORICAL_SOURCE_README.md).
 
-Mars's 225-million-km reference distance is a game normalization, not a measured average. Communication classes represent separately engineered fictional destination systems. Displayed light-time does not delay commands. The reduced-return capture choice keeps the reference orbit unchanged and labels its penalty as an approximation.
-
-The Educational Robustness Index is a seeded sensitivity experiment, not a real spacecraft reliability probability. Its 200 samples run in cancellable event-loop batches. Hardware robustness does not guarantee objective completion: the Resilient preset fails under the conservative policy but succeeds under the ordinary policy.
-
-Full formulas, sources, numerical checks and limits are in `docs/SCIENTIFIC_VALIDATION_V5.md`.
-
-## Documentation
-
-- `docs/BUG_FIX_REPORT_V5.md`: baseline, defects, reproduction, changes and regression evidence.
-- `docs/QA_V5.md`: executed tests, compatibility matrix, performance and unresolved gates.
-- `docs/SCIENTIFIC_VALIDATION_V5.md`: sources, equations, assumptions and numerical cases.
-- `docs/DEPLOYMENT_V5.md`: GitHub/Vercel publication status and update workflow.
-- `docs/DEVELOPER_V5.md`: architecture and maintenance.
-- `docs/DEMO_V5.md`: 90-second and 3-minute demonstration paths.
-- `docs/RELEASE_NOTES_V5.md`: changes and limitations.
-
-Earlier v3/v4 reports and research notes are historical records; v5 documentation supersedes their statements about current functionality.
-
-## Attribution and competition use
-
-NASA/JPL references are linked inside the game and scientific report. The code-generated visuals use no external art or runtime dependencies. Implemented with Codex assistance; do not imply NASA endorsement. This work is preparation material: verify the applicable event/challenge rules, disclose pre-existing work, cite sources and add the six members' actual contributions before submission. Award eligibility or success is not guaranteed.
+Implementation includes Codex assistance. NASA/JPL sources are credited; no NASA endorsement, competition award, or publication is claimed. No new blanket code license is asserted because the reviewed source contains no license grant. Republication permission does not itself grant downstream reuse rights.
