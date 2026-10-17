@@ -1,0 +1,38 @@
+name: One-time authorized source migration
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  migrate:
+    if: github.repository == 'Raj2003-bubt/TrajectIQ'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+      - name: Import original history and verify complete source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "Raj2003-bubt/TrajectIQ"
+          test ! -e package.json
+          test "$(git rev-list --count HEAD)" = "1"
+          source_sha=a925ad86317ea0f336c8656de6650ff3849aa27b
+          git fetch https://github.com/Pranto-404/Trajectiq.git main
+          test "$(git rev-parse FETCH_HEAD)" = "$source_sha"
+          test "$(git rev-parse FETCH_HEAD^{tree})" = "910eb1911246059537221ef73b8add5d429448c2"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git merge --no-ff --allow-unrelated-histories "$source_sha" -m "Import authorized TrajectIQ source with original commit history"
+          git diff --exit-code "$source_sha" HEAD -- . ':!.github/workflows/import-source.yml'
+          npm run build
+          npm test
+          git diff --exit-code
+          git push origin HEAD:refs/heads/main
