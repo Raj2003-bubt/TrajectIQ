@@ -6,9 +6,9 @@
 
 An educational browser game developed in the NASA Space Apps Challenge 2026 project context. TrajectIQ connects spacecraft subsystem choices to consequences for energy, propulsion, data return, and mission objectives through Moon and Mars scenarios.
 
-[Play the existing live demo](https://trajectiq-omega.vercel.app/) · [Developer guide](docs/DEVELOPER_V5.md) · [Scientific model](docs/SCIENTIFIC_VALIDATION_V5.md) · [Audit](docs/PORTFOLIO_AUDIT.md)
+[Play TrajectIQ](https://trajectiq-raj2003.vercel.app/) · [Developer guide](docs/DEVELOPER_V5.md) · [Scientific model](docs/SCIENTIFIC_VALIDATION_V5.md) · [Audit](docs/PORTFOLIO_AUDIT.md)
 
-The demo is the original deployment, maintained separately from this portfolio repository. Changes here do not automatically update that deployment.
+This portfolio deployment is owned by Vercel account `raj2003-bubt` and built from this repository's `main` branch. The [original demo](https://trajectiq-omega.vercel.app/) remains independently maintained and was not modified. See the [portfolio deployment record](docs/PORTFOLIO_DEPLOYMENT.md).
 
 ## Problem and motivation
 
@@ -104,6 +104,8 @@ Open `http://localhost:3000`. On Windows without `python3`, use `py -m http.serv
 ## Build and verification
 
 The independent local audit passed the build and **281 tests with zero failures/skips** on Node.js 24.19.0. The history-migration workflow also passed build/tests. Regular GitHub Actions CI has been observed successful and repeats the build and regression suite on **Node.js 22 and 24**, including committed standalone-file consistency. See [the actual workflow runs](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml).
+
+Production smoke testing on 18 October 2026 completed both Moon (751 returned science units) and Mars (669 units) campaigns, including launch readiness, a recovery choice, debrief, and source-linked English/Bangla assistant answers. The cloud browser used the working SVG fallback; this does not establish WebGL or real-device coverage.
 
 Coverage includes analytic physical-model cases, energy/data conservation, duplicate-action guards, checkpoint continuity, assistant behavior, renderer lifecycle, and offline-cache contracts. Mocked UI/GPU checks do not establish complete browser, mobile, or accessibility compatibility.
 
