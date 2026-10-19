@@ -1,4 +1,4 @@
-# Portfolio engineering audit — 17–18 October 2026
+# Portfolio engineering audit — 17–19 October 2026
 
 ## Baseline and migration
 
@@ -26,7 +26,9 @@ These are independently executed results, separate from historical QA logs. Mode
 
 The README now explains the problem, architecture, verified features, setup, deterministic assistant, scientific categories, and limitations. The original README and historical attribution are preserved. Node.js >=22 is declared. Gameplay, physics, assistant logic, save schema, and Vercel configuration were not changed.
 
-Actual game screenshots are not yet committed. Expanded real-device, visual/accessibility, and offline-update lifecycle checks remain open. A separate Vercel production project has not been created; its owning account/team requires explicit approval. The linked existing demo remains independent.
+Actual game screenshots are not yet committed. Expanded real-device, visual/accessibility, and offline-update lifecycle checks remain open. An independent Vercel Hobby production project is live at https://trajectiq-raj2003.vercel.app/ under the authorized `raj2003-bubt` account. Cloud-browser Moon and Mars campaigns reached successful debriefs (751 and 669 returned science units), and English/Bangla source-linked assistant explanations were checked. The browser used the SVG fallback; WebGL and real-device verification remain open. See [deployment evidence](PORTFOLIO_DEPLOYMENT.md). The original demo remains independent.
+
+Automatic Git deployment was independently observed: the documentation commit `a71f238fcbb602bac6669044dd7bb938c9e41f25` triggered production deployment `dpl_D1QvjhCxBeC4grqeFGydC8e1XwuW`, and README commit `85e309a819a4c47e18150f68ab26775e9f495a4e` triggered `dpl_3fjzRA7U5ifBTintdi8bXHJXjAeb`. Both reached READY without a manual deployment request.
 
 ## Primary references rechecked
 
