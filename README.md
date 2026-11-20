@@ -4,7 +4,7 @@
 
 [![Build and regression tests](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml/badge.svg)](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml)
 
-An educational browser game developed in the NASA Space Apps Challenge 2026 project context. TrajectIQ connects spacecraft subsystem choices to consequences for energy, propulsion, data return, and mission objectives through Moon and Mars scenarios.
+A team project by **Team Kemon Dilam Bondhura**. An educational browser game developed in the NASA Space Apps Challenge 2026 project context. TrajectIQ connects spacecraft subsystem choices to consequences for energy, propulsion, data return, and mission objectives through Moon and Mars scenarios.
 
 [Play TrajectIQ](https://trajectiq-raj2003.vercel.app/) · [Developer guide](docs/DEVELOPER_V5.md) · [Scientific model](docs/SCIENTIFIC_VALIDATION_V5.md) · [Audit](docs/PORTFOLIO_AUDIT.md)
 
@@ -121,7 +121,9 @@ Coverage includes analytic physical-model cases, energy/data conservation, dupli
 
 ## Screenshots
 
-Actual game screenshots are not yet committed. The live demo is linked above; no generated artwork is presented as an application capture.
+![Current portfolio hangar](docs/screenshots/current-portfolio-hangar.jpg)
+
+Actual capture of the current portfolio deployment on 20 November 2026, using the SVG fallback. This is the existing vanilla JavaScript release; the newer React migration is still under review. See the [current migration audit](docs/UPSTREAM_INTEGRATION_20261120.md).
 
 ## Documentation and future work
 
