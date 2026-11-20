@@ -2,135 +2,122 @@
 
 **Design a spacecraft. Operate the mission. Understand the trade-offs.**
 
-[![Build and regression tests](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml/badge.svg)](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml)
+A team project by **Team Kemon Dilam Bondhura**, developed in the **NASA Space Apps Challenge 2026** project context. TrajectIQ is an educational browser game connecting spacecraft design choices to power, propulsion, data return and mission outcomes.
 
-An educational browser game developed in the NASA Space Apps Challenge 2026 project context. TrajectIQ connects spacecraft subsystem choices to consequences for energy, propulsion, data return, and mission objectives through Moon and Mars scenarios.
+[![CI](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml/badge.svg)](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml)
 
-[Play TrajectIQ](https://trajectiq-raj2003.vercel.app/) · [Developer guide](docs/DEVELOPER_V5.md) · [Scientific model](docs/SCIENTIFIC_VALIDATION_V5.md) · [Audit](docs/PORTFOLIO_AUDIT.md)
+[Portfolio live demo](https://trajectiq-raj2003.vercel.app/) · [Original team source](https://github.com/Pranto-404/Trajectiq) · [Team demo](https://trajectiq-omega.vercel.app/) · [Integration audit](docs/UPSTREAM_INTEGRATION_20261120.md)
 
-This portfolio deployment is owned by Vercel account `raj2003-bubt` and built from this repository's `main` branch. The [original demo](https://trajectiq-omega.vercel.app/) remains independently maintained and was not modified. See the [portfolio deployment record](docs/PORTFOLIO_DEPLOYMENT.md).
+> This branch contains the React migration under review. The portfolio production demo may still run the previous release until the pull request is approved and deployed. The original team demo is maintained independently.
 
-## Problem and motivation
+## Features
 
-Spacecraft subsystems are often taught separately, but a mission depends on their interactions. A more capable instrument also needs power, storage, communication bandwidth, mass allowance, and budget. TrajectIQ makes these dependencies visible: build a design, inspect margins, encounter consequences, and make a targeted revision.
+- **Eight destinations, ten scenarios:** Moon, Mars, Earth, Mercury, Venus, Vesta, Ceres and Europa, each with destination-specific constraints.
+- **Solo, same-device Crew and Sandbox modes**, with Cadet, Engineer and Flight Director difficulties. Crew mode is pass-the-controls play, not online multiplayer.
+- **Spacecraft design:** seven subsystem categories, orbital choices, mass/cost/schedule checks, power and storage margins, launch readiness and explicit warnings.
+- **Mission operations:** deterministic simulation, resource-limited crisis choices, science return, causal debrief, decision replay and seeded robustness experiments.
+- **Interactive visuals:** persistent Three.js spacecraft scene, orbit/camera controls and SVG fallback; responsive interface, light/dark themes and reduced-motion support.
+- **Local persistence and sharing:** browser saves, validated legacy-save migration, mission codes, local leaderboard and report exports.
+- **Offline mission assistant:** local rules, simulation-backed what-if experiments and bundled NASA/JPL reference facts. Optional server-side Gemini backup is described separately below.
+- **Offline edition:** generated single-file React game using the SVG renderer; hosted caching after a successful first visit.
 
-The teaching loop combines design validation, deterministic operations, crisis decisions, and a causal debrief. Players can compare choices under the same simulation policy. Learning gains have not been measured in a user study.
-
-## Verified features
-
-- Moon/Mars presets with destination-specific constants and engineering constraints.
-- Seven subsystem categories, component choices, and fuel/orbit/array/battery/instrument customization.
-- Live cost, mass, power, battery, storage, communication, and propulsion margins.
-- Launch-readiness validation and a deterministic mission lifecycle.
-- Mission events, resource-gated recovery choices, and returned-science scoring.
-- Causal debrief, run comparison, and targeted redesign previews.
-- State-aware offline assistant with bounded what-if experiments and explicit apply actions.
-- Browser-local autosave and paused resume, including unresolved crises.
-- Seeded robustness sampling with progress/cancellation and disclosed assumptions.
-- Schematic WebGL spacecraft view with an SVG fallback.
-- Standalone HTML, hosted offline caching after initial installation, and JSON report export.
-
-## Moon and Mars gameplay
-
-| Scenario | Environment and scope |
+| Destination | Scenarios |
 |---|---|
-| Moon | 100 km Balanced starter orbit, lunar radius/GM, 1,361 W/m² reference sunlight, fixed teaching eclipse |
-| Mars | 400 km starter orbit, Mars radius/GM, 586.2 W/m² reference sunlight, destination-specific altitude limits, simplified derived eclipse |
+| Moon | Lunar Polar Mapper; Lunar Ice Hunter |
+| Mars | Mars Polar Mapper; Mars Dust Season |
+| Earth | Earth Observer on a Clock |
+| Mercury | Mercury Thermal Squeeze |
+| Venus | Venus Radar Cycles |
+| Vesta | Dawn at Vesta |
+| Ceres | Dawn at Ceres |
+| Europa | Europa Clipper-style Orbiter |
 
-Both are simplified arrival/orbital mapping scenarios. Transport is pre-arranged and compressed. Mars gameplay does not simulate an Earth–Mars cruise, launch window, or landing.
-
-1. Accept the mission and start with **Moon / Balanced**.
-2. Change a subsystem and inspect cost, mass, power, and data margins.
-3. Open **Launch readiness**, resolve blockers, and authorize launch.
-4. Advance to events, choose enabled recovery actions, and resume.
-5. Return at least **520 science units** while retaining battery energy; observations left onboard do not count as returned.
-6. Read the debrief, preview a targeted redesign, and compare another run.
-
-The budget is 150 fictional credits and the target is 650 game science units, with success at 80%. These values are teaching choices.
-
-## Technology and architecture
-
-**JavaScript ES modules · HTML/CSS · Native WebGL/SVG · Service Worker · Node.js test runner · Static Vercel hosting**
-
-No npm runtime dependencies, backend services, accounts, API keys, or external AI calls are required.
-
-| Module | Responsibility |
-|---|---|
-| `dist/data/` | NASA/JPL snapshots, provenance, fictional components, and presets |
-| `dist/engine/model.js` | Normalization, constraints, model equations, events, scoring, debrief, and seeded experiments |
-| `dist/engine/copilot.js`, `assistant.js` | Bounded intent parsing, grounded explanations, and engine-backed comparisons |
-| `dist/ui/` | Navigation, guarded edits, checkpoints, modals, and schematic rendering |
-| `dist/sw.js` | Versioned hosted offline shell |
-| `scripts/build-standalone.mjs` | Self-contained HTML built from the same modules |
-| `tests/` | Engine, physics, assistant, UI/GPU adapters, cache, and standalone checks |
-
-The engine is separate from rendering. The maintained modules live in `dist` alongside the generated standalone HTML; edit modules and rebuild rather than editing the generated file.
-
-## Offline mission assistant
-
-The assistant is deterministic and rule-based. It uses actual design/flight state and the mission engine, rather than a general-purpose generative AI model.
-
-Try `Review my design`, `What if fuel = 45 kg?`, `What if battery size = 125%?`, or `Compare presets`. Experiments preview original/proposed values before applying changes. Unsupported or ambiguous questions receive a limitation or clarification. English, Bangla, and common Banglish inputs are supported; the whole interface is not fully translated.
-
-## Scientific sources and assumptions
-
-| Category | Examples |
-|---|---|
-| Bundled NASA/JPL references | Body radius, GM, reference irradiance, illustrative distance ranges |
-| Mathematical relations | Circular two-body period, ideal rocket equation, energy integration, unit conversion, light-time |
-| Educational approximations | Contact schedules, central-shadow eclipse geometry, simplified link scaling, capture penalties |
-| Fictional game parameters | Components, hardware specifications, credits, science units, event triggers, uncertainty ranges |
-
-Snapshots are not live telemetry or current ephemerides. Mars's 225-million-km link reference is a chosen normalization, not a measured average. The robustness index measures seeded game outcomes under assumed perturbations; it is not a real spacecraft survival probability.
-
-References: [JPL physical parameters](https://ssd.jpl.nasa.gov/sats/phys_par/sep.html), [NASA Moon Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html), [NASA Mars Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html), [NASA Mars Relay Network](https://science.nasa.gov/mars/mars-relay-network/), and [NASA Glenn rocket equation](https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/ideal-rocket-equation/). Equations, units, numerical cases, and omitted dynamics are in [scientific validation](docs/SCIENTIFIC_VALIDATION_V5.md).
+Scenario names describe educational exercises. The Europa scenario is a simplified orbiter exercise, not a reproduction of the real Europa Clipper trajectory.
 
 ## Run locally
 
-For immediate desktop play, open **`dist/TRAJECTIQ_Play.html`** or use **`START_GAME.bat`** on Windows. Mobile file-preview apps may not execute HTML; use the HTTPS demo.
-
-For development, install **Node.js 22+** and optionally **Python 3** for the local server:
+Requires **Node.js 22.12+** (Node 24 is also covered by CI) and npm.
 
 ```bash
 git clone https://github.com/Raj2003-bubt/TrajectIQ.git
 cd TrajectIQ
-npm run build
-npm test
-npm start
+npm ci --ignore-scripts
+npm run dev
 ```
 
-Open `http://localhost:3000`. On Windows without `python3`, use `py -m http.server 3000 --directory dist`. No npm installation step is needed.
+Open `http://127.0.0.1:5173`. For the production build:
 
-## Build and verification
+```bash
+npm run build
+npm test
+npm run preview
+```
 
-The independent local audit passed the build and **281 tests with zero failures/skips** on Node.js 24.19.0. The history-migration workflow also passed build/tests. Regular GitHub Actions CI has been observed successful and repeats the build and regression suite on **Node.js 22 and 24**, including committed standalone-file consistency. See [the actual workflow runs](https://github.com/Raj2003-bubt/TrajectIQ/actions/workflows/ci.yml).
+Preview: `http://127.0.0.1:4173`. `npm start` serves the built current app at `http://127.0.0.1:3000`.
 
-Production smoke testing on 18 October 2026 completed both Moon (751 returned science units) and Mars (669 units) campaigns, including launch readiness, a recovery choice, debrief, and source-linked English/Bangla assistant answers. The cloud browser used the working SVG fallback; this does not establish WebGL or real-device coverage.
+For offline play, build first and open **`site/TRAJECTIQ_Play.html`**. On Windows, `START_GAME.bat` opens that file after it exists. `npm run standalone` also builds the current edition. The committed **`dist/TRAJECTIQ_Play.html` is an archived legacy edition**, retained for historical reproducibility.
 
-Coverage includes analytic physical-model cases, energy/data conservation, duplicate-action guards, checkpoint continuity, assistant behavior, renderer lifecycle, and offline-cache contracts. Mocked UI/GPU checks do not establish complete browser, mobile, or accessibility compatibility.
+## Architecture
 
-## Saving, offline use, and limitations
+**React 19 · Vite 8 · JavaScript ES modules · Zustand · Three.js / React Three Fiber / Drei · Motion · CSS modules · Service Worker · Node test runner · Vitest**
 
-- Saves belong to the current browser, device, and origin. Clearing site data or storage restrictions can lose/prevent saves; no cloud sync exists.
-- Reload restores valid active-flight checkpoints paused. Incompatible/corrupt data is retained for explicit export/discard.
-- JSON reports are read-only exports, not restore/import files.
-- Hosted offline use requires a successful initial load and service-worker installation; external references need internet.
-- Close all game tabs and reopen to activate cached updates; active flights are not forcibly replaced.
-- The model omits n-body dynamics, complete RF budgets, realistic contact geometry, landing, and thermal/radiation effects. It is not a flight-design or flight-certified tool.
-- Real-device, full visual/accessibility, and offline-update lifecycle checks remain incomplete. No flawless cross-device claim is made.
+| Location | Purpose |
+|---|---|
+| `dist/data/` | Maintained source for bodies, NASA/JPL snapshots, fictional hardware and scenarios |
+| `dist/engine/` | Maintained simulation, equations, assistant, scoring, replay and mission-code source |
+| `src/store/` | Game state, save migration, validation and bounded optional AI requests |
+| `src/features/` | Mission board, hangar, flight, reports, sheets and persistent 3D stage |
+| `src/ds/`, `src/styles/` | Accessible control primitives, themes and responsive layout |
+| `src/assets/` | Bundled textures/fonts and their attribution/license notices |
+| `server/assist-core.js`, `api/assist.js` | Optional server-side Gemini proxy; no key is needed for core gameplay |
+| `scripts/build.mjs` | Hosted build, generated service worker and current single-file edition |
+| `site/` | Generated hosting output, ignored by Git |
+| `tests/`, `tests-ui/` | Engine/security/build checks and React/store regression suites |
+
+The directory name `dist/` is historical: it contains maintained engine/data source as well as the archived interface. Do not delete it as disposable build output. The Vercel output directory for this version is **`site`**.
+
+## Verification
+
+Fresh Linux / Node **24.22.3** checks during this integration passed:
+
+- Reproducible installation with `npm ci --ignore-scripts`.
+- Production hosted build, service worker and current standalone generation.
+- **396 Node tests + 374 Vitest tests = 770 passing tests**, no Node failures/skips.
+- `npm audit --json`: zero reported vulnerabilities across runtime and development dependencies at the time of checking.
+- Archived standalone file unchanged from the reviewed upstream commit.
+
+CI runs installation, runtime dependency audit, build and both suites on Linux Node 22/24 and Windows Node 24. See [Actions](https://github.com/Raj2003-bubt/TrajectIQ/actions) for actual run status; configured coverage is not a claim that every run passed.
+
+`npm run e2e` currently exits with an explicit “not configured” error: there is no Playwright test suite. Component tests use jsdom and emit canvas-not-implemented warnings; they do not prove GPU rendering or device compatibility. Browser evidence, unresolved checks and release gates are recorded in the [integration audit](docs/UPSTREAM_INTEGRATION_20261120.md).
+
+## Assistant and privacy
+
+The default verified assistant uses local rules and the actual mission engine. It can review designs, explain reference facts and preview bounded experiments without a network connection.
+
+In the hosted version, **AI backup is enabled in preferences by default**. When local knowledge cannot answer, the client may send the question, a short mission summary and recent questions to this site's `/api/assist` function, which forwards them to Google Gemini when configured. Players can disable automatic backup in Tools & preferences. Generated replies are labelled as AI backup and are not verified by the game.
+
+No provider credentials were added in this migration. To enable the optional backend, the project owner must configure a server-only `GEMINI_API_KEY` and a supported `GEMINI_MODEL` in the intended Vercel project. The existing fallback model identifier has not been verified against a live provider in this audit. Never use a `VITE_` prefix for a secret. Local `vite` preview is static and does not run Vercel functions; core gameplay remains available when the backend is absent.
+
+The proxy checks origin/content type, bounds inputs, strips unsupported context fields, limits output and applies a timeout. In-memory rate limits are **per serverless instance**, not a global billing cap or authentication system. Do not treat an Origin header as protection against arbitrary non-browser clients. Provider quotas/spend controls require separate configuration. The standalone edition has no AI-network capability.
+
+## Scientific basis and limitations
+
+The game distinguishes sourced NASA/JPL body facts from mathematical relations and fictional game values. Its equations include the ideal rocket equation, circular two-body orbit period, a zero-beta central-shadow eclipse approximation, energy integration and unit conversions. It does not model full interplanetary transfer trajectories, landing, n-body dynamics, detailed RF budgets or complete thermal/radiation physics.
+
+Hardware specifications, credits, science units, crises and many operating constraints are teaching assumptions. Bundled facts are snapshots, not live telemetry or current ephemerides. Scores and robustness indices are not real mission reliability estimates. Learning outcomes have not been measured in a user study.
+
+References and in-game provenance: [body model](docs/ENGINE_BODIES.md), [scientific equations](docs/SCIENTIFIC_VALIDATION_V6.md), [NASA fact sheets](https://nssdc.gsfc.nasa.gov/planetary/factsheet/), [JPL Solar System Dynamics](https://ssd.jpl.nasa.gov/), [NASA Glenn rocket equation](https://www1.grc.nasa.gov/beginners-guide-to-aeronautics/ideal-rocket-equation/), [asset attribution](src/assets/ATTRIBUTION.md).
+
+Saves stay in the current browser/device/origin; there is no cloud sync. Hosted offline use requires the initial cache to finish. Close old game tabs before expecting a waiting service-worker update to activate. A real-device Safari/Android, screen-reader and complete cache-upgrade test matrix remains necessary.
 
 ## Screenshots
 
-Actual game screenshots are not yet committed. The live demo is linked above; no generated artwork is presented as an application capture.
+Screenshots will be added only from verified application captures. No generated artwork is presented as game evidence. See the audit for the current browser-validation status.
 
-## Documentation and future work
+## Team, provenance and licensing
 
-[Developer guide](docs/DEVELOPER_V5.md) · [Scientific validation](docs/SCIENTIFIC_VALIDATION_V5.md) · [Historical QA](docs/QA_V5.md) · [Requirements](docs/REQUIREMENTS.md) · [Demo paths](docs/DEMO_V5.md) · [Release notes](docs/RELEASE_NOTES_V5.md) · [Original deployment record](docs/DEPLOYMENT_V5.md)
+**Team Kemon Dilam Bondhura** — NASA Space Apps Challenge 2026 project context. This portfolio copy presents the work as a team project without individual contribution claims.
 
-Potential extensions include real-device verification, full localization, validated report import, history-aware navigation, and measured usability/learning studies. These are possibilities rather than completed features.
+Original source: [Pranto-404/Trajectiq](https://github.com/Pranto-404/Trajectiq), integrated through commit `3bfe390c028e909d492c34fc09fbd4eb80f1ea51`. Original author records and Git ancestry are preserved by a normal merge. The portfolio owner previously confirmed republication permission from the rightsholders. See [provenance](docs/PROVENANCE.md) and the [original historical README](docs/HISTORICAL_SOURCE_README.md).
 
-## Provenance and licensing
-
-Republished with the owner's confirmation of permission from the original rightsholders. Original source: [Pranto-404/Trajectiq](https://github.com/Pranto-404/Trajectiq), baseline `a925ad86317ea0f336c8656de6650ff3849aa27b`. Original commit authors, history, attribution, and documentation are preserved. See [provenance](docs/PROVENANCE.md) and the [historical source README](docs/HISTORICAL_SOURCE_README.md).
-
-Implementation includes Codex assistance. NASA/JPL sources are credited; no NASA endorsement, competition award, or publication is claimed. No new blanket code license is asserted because the reviewed source contains no license grant. Republication permission does not itself grant downstream reuse rights.
+No blanket code LICENSE has been added or inferred. Bundled font license notices and NASA imagery credits are preserved. NASA does not endorse this application. Implementation includes Codex assistance. Older `V3`–`V6` reports and the previous portfolio deployment record remain historical evidence, not current verification claims.

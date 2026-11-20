@@ -31,3 +31,7 @@ These observations supplement the earlier 281-test local and GitHub CI runs. The
 The personal-account API path successfully created this Git-linked project and its production deployment. Separate team metadata and build-log endpoints returned 403; no log contents were fabricated. Deployment status, exact Git commit metadata, assigned production domain and live browser behavior were independently observed.
 
 Actual game screenshots still need to be committed. Real-device testing and offline lifecycle checks remain open.
+
+## Pending React migration — November 2026
+
+The integration branch changes the hosting output from `dist` to `site` and adds a lockfile installation step. The records above describe the previous release. The current Vercel connector confirms username `raj2003-bubt` but project reads are blocked by scope/authorization errors; project settings have not been changed. Production release remains pending approval, account/project-source verification and preview testing. See `UPSTREAM_INTEGRATION_20261120.md`.

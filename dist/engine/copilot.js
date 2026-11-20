@@ -1,6 +1,7 @@
-import {CATALOG,PRESETS,MISSION as M,presetFor} from '../data/catalog.js';
+import {CATALOG,PRESETS,MISSION as M,presetFor,neededScience} from '../data/catalog.js';
 import {NASA_DATA,nasaDataset} from '../data/nasa.js';
 import {calculate,normalize,clone,advance,resolve,runToEnd,linkEnvironment} from './model.js';
+import {forecastDirections,forecastRanges} from './review.js';
 
 // Deterministic reasoning tools. Predictions always execute the same game engine.
 const cpNum=(v,p=1)=>Number(v).toLocaleString('en-US',{maximumFractionDigits:p});
@@ -12,7 +13,7 @@ export const EXPERIMENT_FIELDS=[
 export function continuePreview(input,firstAction=null){
  let r=clone(input);
  if(firstAction)r=resolve(r,firstAction);
- for(let i=0;i<180&&!r.done;i++){
+ for(let i=0;i<600&&!r.done;i++){
   if(r.crisis){const options=r.crisis.actions.filter(x=>!x.disabled);const chosen=options.find(x=>x.id===cpPolicy[r.crisis.id])||options[0];if(!chosen)throw new Error('No valid recovery option');r=resolve(r,chosen.id);}
   else r=advance(r);
  }
@@ -32,7 +33,7 @@ const cpRank=(a,b)=>a.failures-b.failures||Number(b.achieved)-Number(a.achieved)
 export function reviewDesign(raw){
  const d=normalize(raw),m=calculate(d).m,base=designPreview(d,'Current design'),candidates=[];
  for(const [key,parts] of Object.entries(CATALOG))for(const part of parts)if(part.id!==d[key])candidates.push({patch:{[key]:part.id},label:part.name});
- for(const [key,values]of Object.entries({fuel:[35,45,55,65],altitude:[m.altitudeMin,m.referenceAltitude,(m.altitudeMin+m.altitudeMax)/2],inclination:[85,90],arrayScale:[1,1.25,1.5],batteryScale:[1,1.25,1.5],duty:[.5,.75,1]}))
+ for(const [key,values]of Object.entries({fuel:[35,45,55,65],altitude:[m.altitudeMin,m.referenceAltitude,(m.altitudeMin+m.altitudeMax)/2],inclination:[85,90],arrayScale:[1,1.25,1.5,...(m.arrayScaleMax>1.5?[m.arrayScaleMax/2,m.arrayScaleMax]:[])],batteryScale:[1,1.25,1.5],duty:[.5,.75,1]}))
   for(const value of values)if(value!==d[key])candidates.push({patch:{[key]:value},label:`${key} = ${value}`});
  const trials=candidates.map(c=>({...designPreview({...d,...c.patch},c.label),patch:c.patch}));
  const better=trials.filter(c=>cpRank(c,base)<0).sort(cpRank);
@@ -61,7 +62,7 @@ function cpPatch(q,d){
   const key=fields[0][0],f=EXPERIMENT_FIELDS.find(x=>x[0]===key);let value=Number(numbers[0]);if(['duty','arrayScale','batteryScale'].includes(key)&&/%|percent|শতাংশ/.test(clean))value/=100;
   if(/%|percent|শতাংশ/.test(clean)&&!['duty','arrayScale','batteryScale'].includes(key))return {error:'Percent units are supported only for battery size, array size and instrument duty.'};
   if(/\bkm\b/.test(clean)&&key!=='altitude'||/\bkg\b/.test(clean)&&key!=='fuel'||/\bdegrees?\b/.test(clean)&&key!=='inclination')return {error:'That unit does not match the selected field.'};
-  const assessment=calculate(d),min=key==='altitude'?assessment.m.altitudeMin:f[2],max=key==='fuel'?assessment.c.propulsion.maxFuel:key==='altitude'?assessment.m.altitudeMax:f[3];
+  const assessment=calculate(d),min=key==='altitude'?assessment.m.altitudeMin:f[2],max=key==='fuel'?assessment.c.propulsion.maxFuel:key==='altitude'?assessment.m.altitudeMax:key==='arrayScale'?assessment.m.arrayScaleMax:f[3];
   if(!Number.isFinite(value)||value<min||value>max)return {error:`${f[1]} must be between ${min} and ${max}. No value was changed.`};
   return {patch:{[key]:value},label:`${f[1]} = ${value}${['arrayScale','batteryScale'].includes(key)?` (${cpNum(value*100)}%)`:''}`};
  }
@@ -92,16 +93,22 @@ export function advancedAnswer(question,{design=PRESETS.balanced,run=null,langua
    `${cpScope(bn)}\n${bn?`${review.tested}টি একক পরিবর্তন পরীক্ষা করেছি।`:`Tested ${review.tested} single-variable changes.`} ${bn?'আগে launch বাধা কমানো, তারপর লক্ষ্য পূরণ; সফল হলে কম খরচ, না হলে বেশি science—এই ক্রমে বেছে নিই।':'Ranking: fewer launch blockers, then meeting the objective; among successful designs prefer lower cost, otherwise more returned science.'}\n${best?(bn?`সেরা পরীক্ষিত পরিবর্তন: ${best.label}।`:`Best tested change: ${best.label}.`):(bn?'পরীক্ষিত একক পরিবর্তনে ভালো ফল পাইনি।':'No tested single change ranked above your current design.')} ${bn?'সব combination পরীক্ষা করা হয়নি।':'This is a bounded search, not a global optimum.'}${run&&!run.done?'\nHardware is locked in flight; this is a redesign study for your next launch.':''}`,
    {comparisons:[review.base,...best?[best]:[]],proposal:best?{base:d,patch:best.patch,label:best.label}:null,topic:'review'});
  }
- if(/compare.*(?:crisis|choices|decision|responses)|preview.*(?:crisis|choices|decision)|which.*(?:choice|response)|কোন.*সিদ্ধান্ত|kont[a]? option/i.test(q)){
+ if(/use my (?:one )?forecast|compare.*(?:crisis|choices|decision|responses)|preview.*(?:crisis|choices|decision)|which.*(?:choice|response)|কোন.*সিদ্ধান্ত|kont[a]? option/i.test(q)){
   if(!run?.crisis)return cpAnswer(bn?'এখন কোনো crisis নেই':'No active crisis',bn?'বিপদ এলে Compare crisis choices চাপুন। প্রতিটি চালু option-এর ফল একই বর্তমান অবস্থা থেকে পরীক্ষা করব।':'When a crisis appears, choose Compare crisis choices. I will simulate each available response from that exact mission state.',{evidence:'CURRENT MISSION',suggestions:['Mission status','Review my design']});
-  const rows=run.crisis.actions.filter(x=>!x.disabled).map(x=>{const r=continuePreview(run,x.id);return {...designPreview(run.design,x.name),science:r.science,battery:r.outcome.finalBattery,lostMB:r.lostMB,achieved:r.outcome.achieved,status:r.outcome.status};});
-  return cpAnswer(bn?'সিদ্ধান্তের ফল পরীক্ষা':'Rehearse this decision',`${run.crisis.title}\n${bn?'প্রতিটি option একই বর্তমান অবস্থা থেকে শেষ পর্যন্ত চালানো হয়েছে। পরের crisis-এ conserve/downlink/wait এবং সম্ভব হলে nominal capture নেওয়া হয়। আপনার বর্তমান command বহাল থাকে, recovery rule বদলালে ছাড়া।':'Each available response is simulated from this exact paused state to campaign end. Later crises use conserve/downlink/wait and nominal capture when available. Your current command persists unless a recovery rule changes it.'}\n${bn?'এখনো কোনো সিদ্ধান্ত প্রয়োগ হয়নি। Game-এ ফিরে নিজে বেছে নিন।':'No decision has been applied. Return to the game and choose your response.'}`,{comparisons:rows,topic:'crisis',evidence:'CURRENT STATE → GAME FORECAST',suggestions:['Mission status','Which command should I use?']});
+  const wantsForecast=/forecast|exact|numbers|range/i.test(q),usedUp=(run.forecasts||0)>=1,dir=forecastDirections(run),arrow=v=>v>=3?'↑↑↑':v===2?'↑↑':v===1?'↑':v===0?'≈':v===-1?'↓':v===-2?'↓↓':'↓↓↓';
+  const lines=dir.map(r=>`${r.name}: ${r.chips.map(c=>`${c.key} ${arrow(c.dir)}`).join(' · ')}`).join('\n');
+  const rough=bn?'প্রতিটি option একই বর্তমান অবস্থা থেকে শেষ পর্যন্ত চালিয়ে দিক দেখানো হলো; সংখ্যা নয়, যাতে সিদ্ধান্তটা আপনার থাকে। ↑ মানে অন্য option-এর তুলনায় বেশি।':'Each response was rehearsed to campaign end from this exact state. Only the direction is shown, not the numbers, so the decision stays yours. ↑ means better than the other responses.';
+  if(wantsForecast&&!usedUp){
+   const ranges=forecastRanges(run);
+   return cpAnswer(bn?'আপনার একটি forecast':'Your one forecast',`${run.crisis.title}\n${bn?'প্রতি মিশনে একবার ব্যবহারযোগ্য forecast। হিসাব তিনটি পরিবেশ ধরে (খারাপ, স্বাভাবিক, ভালো) সীমা দেখায়।':'One forecast per mission. Each range spans pessimistic, nominal and optimistic conditions and carries a ±5% model margin, so it informs the decision without settling it.'}\n${ranges.map(r=>`${r.name}: returned science about ${r.science[0]}–${r.science[1]} units, ending battery ${r.battery[0]}–${r.battery[1]}%`).join('\n')}\n${bn?'এটাই এই মিশনের একমাত্র forecast।':'That was your only forecast for this mission.'}`,{ranges,directions:dir,consumesForecast:true,topic:'crisis',evidence:'ONE FORECAST · RANGES, NOT A PROMISE',suggestions:['Mission status','Which command should I use?']});
+  }
+  return cpAnswer(bn?'সিদ্ধান্তের দিক':'Read the direction of each response',`${run.crisis.title}\n${rough}\n${lines}\n${usedUp?(bn?'এই মিশনের forecast ব্যবহার হয়ে গেছে।':'Your one forecast for this mission is already used.'):(bn?'আরও নিশ্চিত হতে চাইলে মিশনে একবার “Use my one forecast” চাপতে পারেন।':'Want ranges? You can spend your one forecast for this mission.')}\n${bn?'এখনো কোনো সিদ্ধান্ত প্রয়োগ হয়নি। Game-এ ফিরে নিজে বেছে নিন।':'No decision has been applied. Return to the game and choose your response.'}`,{directions:dir,forecastAvailable:!usedUp,topic:'crisis',evidence:'CURRENT STATE → ROUGH DIRECTION',suggestions:usedUp?['Mission status','Which command should I use?']:['Use my one forecast','Mission status']});
  }
  if(/mission status|diagnos|what.*next|next step|current state|am i.*(?:track|doing)|ekhon ki|এখন কী|এখন কি|অবস্থা/i.test(q)){
   if(!run)return cpAnswer(bn?'পরের ধাপ':'Your next step',`${bn?'আপনি এখন design করছেন।':'You are designing your spacecraft.'} ${a.launchable?(bn?'Launch readiness খুলুন; warning বুঝে Authorize launch চাপুন।':'Open Launch readiness, read the advisory warnings, then authorize launch.'):(bn?'আগে এই বাধাগুলো ঠিক করুন: ':'Fix these blockers first: ')+a.checks.filter(x=>x.status==='fail').map(x=>`${x.name}: ${x.value}`).join('; ')}\n${cpNum(a.cost)} / ${m.budget} credits · ${cpNum(a.wet)} / ${a.c.launch.capacity} kg`,{evidence:'CURRENT DRAFT',suggestions:['Review my design','How do I play?'],topic:'status'});
   const battery=run.battery/a.c.power.battery*100,fill=run.backlog/a.c.storage.capacity*100;
   const next=run.done?(bn?'Result দেখুন, তারপর redesign করে আবার চেষ্টা করুন।':'Read the causal debrief, then redesign and replay.'):run.crisis?(bn?'Compare crisis choices চাপুন; game-এ ফিরে একটি সিদ্ধান্ত নিন, তারপর Resume।':'Compare crisis choices, return to the game, choose a response, then Resume.'):run.phase!=='operations'?(bn?'Close দিয়ে ফিরে Resume বা Next event চাপুন।':'Close this panel, then Resume or Next event.'):battery<30?(bn?'Battery কম। Conserve energy চাপলে collection ও transmission থামবে; পরে রোদে command বদলাতে হবে।':'Battery is low. Conserve energy pauses collection and transmission; manually resume mapping after sunlight recharges it.'):fill>75?(bn?'Recorder প্রায় পূর্ণ। Return priority দিন; contact window-তে ডেটা যাবে।':'Recorder is nearly full. Use Return priority; transmission happens during contact windows.'):run.mode==='coast'?(bn?'Conserve চলছে। যথেষ্ট charge হলে Map in sunlight দিয়ে সংগ্রহ চালু করুন।':'Conserve is active. Once sufficiently charged, select Map in sunlight to resume collection.'):(bn?'Map in sunlight রাখুন; contact-এ data যাবে। Resume বা +5 min চাপুন।':'Continue Map in sunlight; observations return during contact. Resume or step +5 min.');
-  return cpAnswer(bn?'আপনার মিশনের বর্তমান অবস্থা':'Your mission right now',`${run.phase} · T+${cpNum(run.minute)} min\nBattery ${cpNum(battery)}% · recorder ${cpNum(fill)}%\nReturned science ${cpNum(run.science)} / ${cpNum(m.scienceTarget*.8,0)} needed to meet the objective.\n${next}`,{evidence:'CURRENT MISSION · MEASURED GAME STATE',topic:'status',suggestions:run.crisis?['Compare crisis choices','What should I do in a crisis?']:['Why is my battery dropping?','Why is my recorder full?']});
+  return cpAnswer(bn?'আপনার মিশনের বর্তমান অবস্থা':'Your mission right now',`${run.phase} · T+${cpNum(run.minute)} min\nBattery ${cpNum(battery)}% · recorder ${cpNum(fill)}%\nReturned science ${cpNum(run.science)} / ${cpNum(neededScience(m),0)} needed to meet the objective.\n${next}`,{evidence:'CURRENT MISSION · MEASURED GAME STATE',topic:'status',suggestions:run.crisis?['Compare crisis choices','What should I do in a crisis?']:['Why is my battery dropping?','Why is my recorder full?']});
  }
  if(/(?:calculate|how long|কতক্ষণ).*(?:fill|recorder|storage)|(?:recorder|storage).*(?:fill time|কতক্ষণ)/i.test(q)){
   const rate=a.c.payload.dataMbps*(run?.throttle??d.duty)*60/8,room=a.c.storage.capacity-(run?.backlog||0);
