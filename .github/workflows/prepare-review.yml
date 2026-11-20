@@ -50,6 +50,12 @@ jobs:
           git diff --exit-code
       - name: Publish review branch without touching main
         run: |
-          git commit -m "Merge team React mission game while preserving portfolio history and release controls"
-          test "$(git rev-parse HEAD^{tree})" = c2a29545404b2f878ae670b789295ee1a0999358
+          # GITHUB_TOKEN cannot update workflow files. Publish application history
+          # with the unchanged baseline CI; connected GitHub access restores the
+          # reviewed CI in a separate commit and verifies the final reviewed tree.
+          git restore --source=origin/main --staged --worktree .github/workflows
+          test "$(git write-tree)" = b5f05501d05201e2af4e1d60d7dfe520452aec03
+          git diff --cached --quiet origin/main -- .github/workflows
+          git commit -m "Merge reviewed team application history with existing CI retained for publication"
+          test "$(git rev-parse HEAD^{tree})" = b5f05501d05201e2af4e1d60d7dfe520452aec03
           git push origin HEAD:refs/heads/feat/upstream-react-integration-20261120
