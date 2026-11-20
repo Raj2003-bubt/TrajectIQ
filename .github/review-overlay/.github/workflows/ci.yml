@@ -1,0 +1,47 @@
+name: CI
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**', 'docs/**']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            node: 22
+          - os: ubuntu-latest
+            node: 24
+          - os: windows-latest
+            node: 24
+    runs-on: ${{ matrix.os }}
+    steps:
+      # Actions are pinned by commit SHA (checkout v4.3.1, setup-node v4.4.0, upload-artifact v4.6.2).
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - name: Install (lockfile, no lifecycle scripts)
+        run: npm ci --ignore-scripts
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Build the site, service worker and standalone game
+        run: npm run build
+      - name: The committed legacy standalone file is up to date (until cutover)
+        if: matrix.os == 'ubuntu-latest'
+        run: git diff --exit-code -- dist/TRAJECTIQ_Play.html
+      - name: Run the node and component test suites
+        run: npm test
+      - name: Keep the CI-built standalone game (Linux is the producer of the committed file at release)
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 24
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: TRAJECTIQ_Play-standalone
+          path: site/TRAJECTIQ_Play.html
+          if-no-files-found: error

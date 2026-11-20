@@ -1,0 +1,55 @@
+name: Prepare reviewed TrajectIQ integration branch
+on:
+  push:
+    branches: [automation/prepare-react-review-20261120]
+    paths: [.github/workflows/prepare-review.yml]
+permissions:
+  contents: write
+concurrency:
+  group: trajectiq-reviewed-integration-20261120
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.repository == 'Raj2003-bubt/TrajectIQ'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+      - name: Prepare exact reviewed merge on a new branch only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse origin/main)" = fb6bfbf72badc6974d547d63ba76916e973de081
+          if git ls-remote --exit-code --heads origin feat/upstream-react-integration-20261120 >/dev/null; then
+            echo 'Review branch already exists; refusing to overwrite it.'
+            exit 1
+          fi
+          cp -a .github/review-overlay "$RUNNER_TEMP/review-overlay"
+          git remote add team-source https://github.com/Pranto-404/Trajectiq.git
+          git fetch team-source main
+          test "$(git rev-parse FETCH_HEAD)" = 3bfe390c028e909d492c34fc09fbd4eb80f1ea51
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c feat/upstream-react-integration-20261120 origin/main
+          git merge --no-commit --no-ff 3bfe390c028e909d492c34fc09fbd4eb80f1ea51 || test -f .git/MERGE_HEAD
+          cp -a "$RUNNER_TEMP/review-overlay/." .
+          git add -A
+          test -z "$(git ls-files --unmerged)"
+          test "$(git write-tree)" = c2a29545404b2f878ae670b789295ee1a0999358
+          git diff --cached --check
+      - name: Validate reviewed tree
+        run: |
+          npm ci --ignore-scripts
+          npm audit --omit=dev --audit-level=high
+          npm run build
+          npm test
+          git diff --exit-code
+      - name: Publish review branch without touching main
+        run: |
+          git commit -m "Merge team React mission game while preserving portfolio history and release controls"
+          test "$(git rev-parse HEAD^{tree})" = c2a29545404b2f878ae670b789295ee1a0999358
+          git push origin HEAD:refs/heads/feat/upstream-react-integration-20261120
