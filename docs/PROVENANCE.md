@@ -16,3 +16,9 @@ The unchanged source README is retained in `HISTORICAL_SOURCE_README.md`. Origin
 The original deployment remains controlled by its existing Git connection. This repository does not control that production project. A separate Vercel project requires explicit approval of its owning account/team.
 
 No LICENSE file was present in the reviewed source tree. Republication permission is not a new general license for third parties. No license, copyright assignment, or downstream reuse grant has been invented.
+
+## November 2026 integration checkpoint
+
+The review branch `feat/upstream-react-integration-20261120` integrates team commit `3bfe390c028e909d492c34fc09fbd4eb80f1ea51` through a normal merge with portfolio baseline `fb6bfbf72badc6974d547d63ba76916e973de081`. The common ancestor is the original imported `a925ad86317ea0f336c8656de6650ff3849aa27b`; 97 newer upstream commits are retained with their original author records. The earlier three-commit source description above applies only to the initial import.
+
+TrajectIQ is presented as a project by **Team Kemon Dilam Bondhura**. Individual team-member roles or contribution allocations are not asserted. The initial portfolio documents remain historical records. No source-code license or ownership change was made; bundled font license notices and NASA imagery attribution are retained. See `UPSTREAM_INTEGRATION_20261120.md` for the current validation and release state.

@@ -1,0 +1,90 @@
+import {useEffect, useLayoutEffect, useRef} from 'react';
+import {AnimatePresence, motion} from 'motion/react';
+import {useGame, selectMission} from '../store/index.js';
+import {Button, Chip, LiveRegion, ToastViewport, MotionProvider, useReducedMotion, variants, variantsFor, setConceptOpener} from '../ds/index.js';
+import {useT} from '../i18n/index.js';
+import {loadFeatures, getScreen} from './features.js';
+import {SheetHost} from './SheetHost.jsx';
+import {useDocumentLanguage, useDensity, useHistorySync} from './hooks.js';
+import iconUrl from '../assets/icon.svg';
+import s from './shell.module.css';
+import {FirstVisitGuide} from './FirstVisitGuide.jsx';
+
+const NAV = [['board', 'Board'], ['hangar', 'Hangar'], ['flight', 'Flight'], ['report', 'Report']];
+
+function Header() {
+  const t = useT();
+  const screen = useGame(st => st.screen), run = useGame(st => st.run), runs = useGame(st => st.runs), team = useGame(st => st.team), a = useGame(st => st.actions);
+  const mission = useGame(selectMission);
+  const theme = useGame(st => st.prefs.theme);
+  const reason = {flight: run && !run.done ? '' : t('Launch a mission first'), report: run?.done || runs.length ? '' : t('Finish a mission first')};
+  const ref = useRef(null);
+  // The header is two rows on a phone, so screens that stick something beneath it need its real height, not the one-row token.
+  useLayoutEffect(() => {
+    const el = ref.current; if (!el) return undefined;
+    const set = () => document.documentElement.style.setProperty('--header-live-h', getComputedStyle(el).position === 'sticky' ? `${Math.round(el.getBoundingClientRect().height)}px` : '0px');
+    set();
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(set); ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return (
+    <header ref={ref} className={s.header}>
+      <button type="button" className={s.brand} onClick={() => a.home()} aria-label="TRAJECTIQ"><img src={iconUrl} alt="" width="28" height="28" /><span className={s.brandText}>TRAJECTIQ</span></button>
+      <nav className={s.nav} aria-label={t('Mission screens')}>
+        {NAV.map(([id, label]) => {
+          const why = reason[id]; const here = screen === id;
+          return <button key={id} type="button" className={s.navItem} aria-current={here ? 'step' : undefined} aria-disabled={why ? true : undefined} title={why || undefined} onClick={() => { if (!why) a.go(id); }}>{t(label)}</button>;
+        })}
+      </nav>
+      <div className={s.right}>
+        <Chip kind="info" icon="orbit" size="sm" className={s.chip}>{mission.title} · {mission.difficultyLabel}{team.mode === 'crew' ? ' · CREW' : ''}</Chip>
+        <Button variant="ghost" size="sm" iconOnly icon={theme === 'light' ? 'eclipse' : 'power'} label={t(theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode')} onClick={() => a.setPref('theme', theme === 'light' ? 'dark' : 'light')} />
+        <Button variant="ghost" size="sm" iconOnly icon="menu" label={t('Menu')} onClick={() => a.openSheet('menu')} />
+      </div>
+    </header>
+  );
+}
+
+function Screen() {
+  const screen = useGame(st => st.screen);
+  const reduced = useReducedMotion();
+  const Body = getScreen(screen);
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div key={screen} {...variantsFor(variants.fadeUp, reduced)}><Body /></motion.div>
+    </AnimatePresence>
+  );
+}
+
+function Frame() {
+  const t = useT();
+  const toasts = useGame(st => st.toasts), a = useGame(st => st.actions);
+  const theme = useGame(st => st.prefs.theme), hidden = useGame(st => st.hidden);
+  const screen = useGame(st => st.screen);
+  useLayoutEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#eef3f8' : '#080d15');
+  }, [theme]);
+  useDocumentLanguage(); useDensity(); useHistorySync();
+  useEffect(() => { setConceptOpener(topic => a.openSheet('concept', {topic})); }, [a]);
+  return (
+    <div className={s.shell} data-background-paused={hidden || undefined}>
+      <div className={s.cosmos} aria-hidden="true" data-paused={hidden || undefined}><div className={s.nebula} /><div className={s.stars} /><div className={s.orbitGlow} /><div className={s.aurora} /><div className={s.meteor} /><div className={s.meteorSecond} /></div>
+      <a className="skip-link" href="#main" onClick={e => { e.preventDefault(); document.getElementById('main')?.focus(); }}>{t('Skip to content')}</a>
+      <Header />
+      <main id="main" className={s.main} tabIndex={-1}>{screen === 'board' ? <FirstVisitGuide /> : null}<Screen /></main>
+      <div className={s.chatLauncher}><Button variant="primary" icon="assistant" onClick={() => a.mentor()}>{t('Assistant')}<span className={s.chatSignal} aria-hidden="true" /></Button></div>
+      <SheetHost />
+      <ToastViewport toasts={toasts} onDismiss={a.dismissToast} dismissLabel={t('Dismiss')} />
+      <LiveRegion />
+    </div>
+  );
+}
+
+/** The app shell: header + screen router + sheet host + toasts + live region, inside the reduced-motion provider. */
+export function AppShell() {
+  const reduced = useGame(st => st.prefs.reducedMotion);
+  loadFeatures();
+  return <MotionProvider reduced={reduced}><Frame /></MotionProvider>;
+}
