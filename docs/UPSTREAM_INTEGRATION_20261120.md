@@ -89,3 +89,27 @@ Build warnings: the renderer chunk exceeds the 700 KB advisory threshold. Total 
 7. If needed, roll back through Vercel to the prior known deployment or a normal Git revert; retain the safety branch.
 
 This report records integration evidence, not production-release completion.
+
+## Publication follow-up — 21 November 2026
+
+Application review: [draft PR #2](https://github.com/Raj2003-bubt/TrajectIQ/pull/2). Main remains at `fb6bfbf72badc6974d547d63ba76916e973de081`. No main merge or manual production deployment was performed.
+
+The owner explicitly approved the one-time branch-publication workflow. The first run passed validation but GitHub rejected its push because the Actions token cannot change workflow files. The revised run [44749920293](https://github.com/Raj2003-bubt/TrajectIQ/actions/runs/44749920293) passed and published application history with baseline CI unchanged. The connected GitHub account then restored the reviewed read-only CI. Application commit `136e753700b3b4c4a7e8868510622f0d7c19a437` has tree `c2a29545404b2f878ae670b789295ee1a0999358`, exactly matching the locally reviewed source. Its merge ancestor retains the original portfolio and team parents.
+
+[PR CI run 44750288537](https://github.com/Raj2003-bubt/TrajectIQ/actions/runs/44750288537) and [push CI run 44750241415](https://github.com/Raj2003-bubt/TrajectIQ/actions/runs/44750241415) succeeded at that application commit. The PR matrix passed Linux Node 22, Linux Node 24 and Windows Node 24. Windows CI is not a physical Windows browser or GPU test.
+
+The documentation follow-up incorporates the genuine screenshots from PR #1, keeps the React README and corrects clone instructions to select the review branch. Its tree intentionally differs by documentation and image files; application and CI source are unchanged. The original documentation branch remains available as historical evidence.
+
+### Public browser observations
+
+The original team deployment exposed eight destinations and ten scenarios. A Lunar Polar mission completed with 602/650 science, 278 MB data, 86% battery and grade A (847/1000). Reloading and reopening the report preserved the result. The local design assistant ran 22 candidate simulations and recommended CompactBus. SVG fallback was observed; no live AI provider call or real WebGL result is claimed.
+
+The screenshots distinguish the original team React deployment from the user's previous portfolio edition. The exact deployed team commit was not authenticated; these images do not validate this exact candidate. Mobile/Safari, physical GPU, offline cold-start/cache-upgrade and provider-response checks remain outstanding.
+
+### Vercel status and access
+
+GitHub reports a successful Vercel deployment for application commit `136e753700b3b4c4a7e8868510622f0d7c19a437`, linking to [deployment 8wt3Qf3vFj7EcV3bAeJ4AWpVM6TL](https://vercel.com/vercel-deployment-connected-prantom/trajectiq-raj2003/8wt3Qf3vFj7EcV3bAeJ4AWpVM6TL). The link uses the `vercel-deployment-connected-prantom` scope. The user's Vercel connection returned 403 when inspecting that deployment and reported no accessible teams. The PR's preview link also led to a Vercel sign-in page.
+
+This status alone does not establish the intended workspace ownership, preview behavior, source settings or production target. The old team scope was not authorized and the other connected Vercel account was not used. Verify ownership/access to the intended personal project before candidate preview review or release.
+
+The GitHub connection temporarily selected another account with read-only access, so the first documentation consolidation attempt made no changes. After the owner reconnected `Raj2003-bubt`, identity and repository push/admin permission were verified before this update.

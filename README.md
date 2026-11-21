@@ -39,7 +39,7 @@ Scenario names describe educational exercises. The Europa scenario is a simplifi
 Requires **Node.js 22.12+** (Node 24 is also covered by CI) and npm.
 
 ```bash
-git clone https://github.com/Raj2003-bubt/TrajectIQ.git
+git clone --branch feat/upstream-react-integration-20261120 https://github.com/Raj2003-bubt/TrajectIQ.git
 cd TrajectIQ
 npm ci --ignore-scripts
 npm run dev
@@ -86,7 +86,7 @@ Fresh Linux / Node **24.22.3** checks during this integration passed:
 - `npm audit --json`: zero reported vulnerabilities across runtime and development dependencies at the time of checking.
 - Archived standalone file unchanged from the reviewed upstream commit.
 
-CI runs installation, runtime dependency audit, build and both suites on Linux Node 22/24 and Windows Node 24. See [Actions](https://github.com/Raj2003-bubt/TrajectIQ/actions) for actual run status; configured coverage is not a claim that every run passed.
+[PR CI run 44750288537](https://github.com/Raj2003-bubt/TrajectIQ/actions/runs/44750288537) passed installation, runtime dependency audit, build and both suites on Linux Node 22/24 and Windows Node 24 at application commit `136e753700b3b4c4a7e8868510622f0d7c19a437`. See [Actions](https://github.com/Raj2003-bubt/TrajectIQ/actions) for checks after documentation changes.
 
 `npm run e2e` currently exits with an explicit “not configured” error: there is no Playwright test suite. Component tests use jsdom and emit canvas-not-implemented warnings; they do not prove GPU rendering or device compatibility. Browser evidence, unresolved checks and release gates are recorded in the [integration audit](docs/UPSTREAM_INTEGRATION_20261120.md).
 
@@ -112,7 +112,21 @@ Saves stay in the current browser/device/origin; there is no cloud sync. Hosted 
 
 ## Screenshots
 
-Screenshots will be added only from verified application captures. No generated artwork is presented as game evidence. See the audit for the current browser-validation status.
+These genuine captures were taken from the public deployments during the 20 November review. They are not captures of the exact migration preview.
+
+**Original team deployment — React hangar**
+
+![Original team React hangar, captured from trajectiq-omega.vercel.app](docs/screenshots/upstream-team-hangar.jpg)
+
+**Original team deployment — completed mission report**
+
+![Original team mission debrief, captured from trajectiq-omega.vercel.app](docs/screenshots/upstream-team-debrief.jpg)
+
+**Portfolio deployment — previous edition at review time**
+
+![Previous portfolio edition, captured from trajectiq-raj2003.vercel.app](docs/screenshots/current-portfolio-hangar.jpg)
+
+See the audit for browser evidence and remaining candidate/device checks.
 
 ## Team, provenance and licensing
 
